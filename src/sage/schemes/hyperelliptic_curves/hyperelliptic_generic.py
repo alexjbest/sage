@@ -39,6 +39,7 @@ from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.real_mpfr import RR
 from sage.functions.all import log
 from sage.structure.category_object import normalize_names
+from sage.misc.cachefunc import cached_method
 
 import sage.schemes.curves.projective_curve as plane_curve
 
@@ -183,6 +184,55 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             f, h = self._hyperelliptic_polynomials
             P = PolynomialRing(K, var)
             return (P(f), P(h))
+
+    @cached_method
+    def discriminant(self):
+        r"""
+        Return the discriminant of this hyperelliptic curve.
+        For now we assume that the base ring is a field of characteristic not equal to two.
+
+        This method is cached.
+
+        EXAMPLES::
+
+            sage: F,G = EllipticCurve([0,0,1,-1,0]).hyperelliptic_polynomials()
+            sage: E = HyperellipticCurve(F,G)
+            sage: E.discriminant()
+            37
+
+            sage: F,G = EllipticCurve([0, -1, 1, -10, -20]).hyperelliptic_polynomials()
+            sage: E = HyperellipticCurve(F,G)
+            sage: E.discriminant()
+            -161051
+
+            sage: F,G = EllipticCurve([GF(7)(2),1]).hyperelliptic_polynomials()
+            sage: E = HyperellipticCurve(F,G)
+            sage: E.discriminant()
+            1
+
+        LMFDB curve 113236.a.452944.1::
+
+            sage: R = PolynomialRing(QQ, "x")
+            sage: C = HyperellipticCurve(R([0, 2, 12, 24, 16, 1]), R([0, 1, 1]))
+            sage: C.discriminant()
+            -452944
+            sage: X = HyperellipticCurve(R([0, 8, 49, 98, 65, 4]))
+            sage: X.discriminant()
+            -452944
+
+        LMFDB curve 400.a.409600.1::
+
+            sage: R = PolynomialRing(QQ, "x")
+            sage: C = HyperellipticCurve(R([1, 0, 4, 0, 4, 0, 1]), R([]))
+            sage: C.discriminant()
+            -409600
+            sage: X = HyperellipticCurve(R([1, 0, 4, 0, 4, 0, 1]))
+            sage: X.discriminant()
+            -409600
+
+        """
+        P, G = self.hyperelliptic_polynomials()
+        return 2**(4*self.genus()) * (P + G ** 2 / 4).discriminant()
 
     def is_singular(self):
         r"""
