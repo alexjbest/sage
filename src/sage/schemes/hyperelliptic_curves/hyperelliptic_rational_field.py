@@ -42,7 +42,7 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
     @cached_method
     def minimal_discriminant(self):
         r"""
-        Return the minimal minimal_discriminant of this hyperelliptic curve.
+        Return the minimal discriminant of this hyperelliptic curve as an integer.
 
         This method is cached.
 
@@ -78,6 +78,16 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             sage: X.minimal_discriminant()
             3125
 
+        LMFDB curve 50000.a.200000.1::
+
+            sage: R = PolynomialRing(QQ, "x")
+            sage: C = HyperellipticCurve(R([1/256, 0, 0, 0, 0, 1]), R([]))
+            sage: C.minimal_discriminant()
+            200000
+            sage: X = HyperellipticCurve(R([0,0,0,0,0,2]), R(1))
+            sage: X.minimal_discriminant()
+            200000
+
         LMFDB curve 400.a.409600.1::
 
             sage: R = PolynomialRing(QQ, "x")
@@ -89,7 +99,7 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             -409600
 
         """
-        return pari(self.hyperelliptic_polynomials()).hyperellminimaldisc()
+        return pari(self.hyperelliptic_polynomials()).hyperellminimaldisc().sage()
 
     def lseries(self, prec=53):
         """
