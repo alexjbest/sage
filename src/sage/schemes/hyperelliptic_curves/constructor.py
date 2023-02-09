@@ -267,6 +267,6 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
             break
 
     class_name = "_".join(cls_name)
-    cls = dynamic_class(class_name, tuple(superclass),
-                        HyperellipticCurve_generic, doccls=HyperellipticCurve)
+    cls = HyperellipticCurve_generic if class_name == "HyperellipticCurve" else \
+            dynamic_class(class_name, tuple(superclass), doccls=HyperellipticCurve)
     return cls(PP, f, h, names=names, genus=g)

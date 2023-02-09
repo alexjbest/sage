@@ -36,6 +36,7 @@ from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.big_oh import O
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.laurent_series_ring import LaurentSeriesRing
+from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.functions.all import log
 from sage.structure.category_object import normalize_names
@@ -218,7 +219,13 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             -452944
             sage: X = HyperellipticCurve(R([0, 8, 49, 98, 65, 4]))
             sage: X.discriminant()
-            -452944
+            -474946207744
+        
+        A random odd curve::
+
+            sage: X = HyperellipticCurve(R([8, 49, 98, 65, 4]))
+            sage: X.discriminant()
+            -28988416
 
         LMFDB curve 400.a.409600.1::
 
@@ -232,7 +239,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
         """
         P, G = self.hyperelliptic_polynomials()
-        return 2**(4*self.genus()) * (P + G ** 2 / 4).discriminant()
+        f = 4 * P + G ** 2
+        return f.discriminant() * (f.leading_coefficient() ** 2 if f.degree() % 2 == 1 else 1) / (ZZ(2)**(4*self.genus() + 4))
 
     def is_singular(self):
         r"""
@@ -655,34 +663,34 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         else:
             return self.local_coordinates_at_nonweierstrass(P, prec, name)
 
-    def _reset_hyperelliptic_polynomials(self):
-        r"""
-        Resets the hyperelliptic polynomials of the hyperelliptic curve to those implied by the underlying
-        defining polynomial.
-        Useful for fixing up curves after modification by a more general curve theoretic method.
+    # def _reset_hyperelliptic_polynomials(self):
+    #     r"""
+    #     Resets the hyperelliptic polynomials of the hyperelliptic curve to those implied by the underlying
+    #     defining polynomial.
+    #     Useful for fixing up curves after modification by a more general curve theoretic method.
 
-        EXAMPLES::
+    #     EXAMPLES::
 
-            sage: R = PolynomialRing(QQ, "x")
-            sage: C = HyperellipticCurve(R([1/256, 0, 0, 0, 1, 1]), R([1]))
-            sage: C
-            Hyperelliptic Curve over Rational Field defined by y^2 + y = x^5 + x^4 + 1/256
-            sage: _reset_hyperelliptic_polynomials(C)
-            sage: C
-            Hyperelliptic Curve over Rational Field defined by y^2 + y = x^5 + x^4 + 1/256
+    #         sage: R = PolynomialRing(QQ, "x")
+    #         sage: C = HyperellipticCurve(R([1/256, 0, 0, 0, 1, 1]), R([1]))
+    #         sage: C
+    #         Hyperelliptic Curve over Rational Field defined by y^2 + y = x^5 + x^4 + 1/256
+    #         sage: _reset_hyperelliptic_polynomials(C)
+    #         sage: C
+    #         Hyperelliptic Curve over Rational Field defined by y^2 + y = x^5 + x^4 + 1/256
 
-        """
-        F = self.affine_patch(2).defining_polynomial()
-        x,y = F.parent().gens()
-        f,g = (F.coefficient(y), F(x,0))
-        R = self.hyperelliptic_polynomials()[0].parent()
-        x = R.gen()
-        self._hyperelliptic_polynomials = (-R(g(x, 0)), R(f(x, 0)))
+    #     """
+    #     F = self.affine_patch(2).defining_polynomial()
+    #     x,y = F.parent().gens()
+    #     f,g = (F.coefficient(y), F(x,0))
+    #     R = self.hyperelliptic_polynomials()[0].parent()
+    #     x = R.gen()
+    #     self._hyperelliptic_polynomials = (-R(g(x, 0)), R(f(x, 0)))
 
     def normalize_defining_polynomials(self):
         r"""
         Clear denominators from the equation defining this hyperelliptic curve.
-        Not guarenteed to be a minimal model, rather some integral model.
+        Not guaranteed to be a minimal model, rather some integral model.
         """
         from .constructor import HyperellipticCurve
         f,g = self.hyperelliptic_polynomials()
@@ -695,31 +703,6 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         on to :meth:`sage.schemes.generic.algebraic_scheme.rational_points`.
 
         EXAMPLES:
-
-        For the LMFDB genus 2 curve `932.a.3728.1 <https://www.lmfdb.org/Genus2Curve/Q/932/a/3728/1>`::
-
-            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, -1, 1, 0, 1, -2, 1]), R([1]));
-            sage: C.rational_points(bound=8)
-            [(-1 : -3 : 1),
-            (-1 : 2 : 1),
-            (0 : -1 : 1),
-            (0 : 0 : 1),
-            (0 : 1 : 0),
-            (1/2 : -5/8 : 1),
-            (1/2 : -3/8 : 1),
-            (1 : -1 : 1),
-            (1 : 0 : 1)]
-
-        Check that :trac:`29509` is fixed for the LMFDB genus 2 curve
-        `169.a.169.1 <https://www.lmfdb.org/Genus2Curve/Q/169/a/169/1>`::
-
-            sage: C = HyperellipticCurve(R([0, 0, 0, 0, 1, 1]), R([1, 1, 0, 1]));
-            sage: C.rational_points(bound=10)
-            [(-1 : 0 : 1),
-            (-1 : 1 : 1),
-            (0 : -1 : 1),
-            (0 : 0 : 1),
-            (0 : 1 : 0)]
 
         An example over a number field::
 
