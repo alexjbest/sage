@@ -102,7 +102,7 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
         return pari(self.normalize_defining_polynomials().hyperelliptic_polynomials()
                    ).hyperellminimaldisc().sage()
 
-    def rational_points(self, bound=1):
+    def rational_points(self, bound=None):
         r"""
         Find rational points on the hyperelliptic curve, all arguments are passed
         on to :meth:`sage.schemes.generic.algebraic_scheme.rational_points`.
@@ -129,8 +129,17 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             sage: C = HyperellipticCurve(R([0, 0, 0, 0, 1, 1]), R([1, 1, 0, 1]));
             sage: len(C.rational_points(bound=10))
             5
+        
+        ::
+
+            sage: R = PolynomialRing(QQ, "x")
+            sage: C = HyperellipticCurve(R([1/256, 0, 0, 0, 0, 1]), R([]))
+            sage: len(C.rational_points(bound=10))
+            5
 
         """
+        if not bound:
+            raise TypeError("Unable to enumerate points over Q, please specify a height bound.")
         pariout = pari(self.hyperelliptic_polynomials()).hyperellratpoints(pari(bound)).sage()
         return [self(P) for P in pariout] + [self(0,1,0)]
 
