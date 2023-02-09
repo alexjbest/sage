@@ -1143,7 +1143,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             initial_polys = list(self.__polys)
 
             for P in initial_polys:
-                # stores value which need to be mutliplied to make all coefficient integers
+                # stores value which need to be multiplied to make all coefficient integers
                 mult = lcm([c.denominator() for c in P.coefficients()])
                 P = mult*P
                 # stores the common factor from all coefficients
@@ -1155,8 +1155,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             self.__polys = tuple(normalized_polys)
 
         else:
-                raise NotImplementedError("currently normalization is implemented "
-                    "only for QQbar, number fields and number field orders")
+            raise NotImplementedError("currently normalization is implemented "
+                                      "only for QQbar, number fields and number field orders")
 
     def defining_ideal(self):
         """

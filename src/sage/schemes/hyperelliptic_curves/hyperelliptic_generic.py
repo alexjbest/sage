@@ -655,7 +655,39 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         else:
             return self.local_coordinates_at_nonweierstrass(P, prec, name)
 
+    def _reset_hyperelliptic_polynomials(self):
+        r"""
+        Resets the hyperelliptic polynomials of the hyperelliptic curve to those implied by the underlying
+        defining polynomial.
+        Useful for fixing up curves after modification by a more general curve theoretic method.
 
+        EXAMPLES::
+
+            sage: R = PolynomialRing(QQ, "x")
+            sage: C = HyperellipticCurve(R([1/256, 0, 0, 0, 1, 1]), R([1]))
+            sage: C
+            Hyperelliptic Curve over Rational Field defined by y^2 + y = x^5 + x^4 + 1/256
+            sage: _reset_hyperelliptic_polynomials(C)
+            sage: C
+            Hyperelliptic Curve over Rational Field defined by y^2 + y = x^5 + x^4 + 1/256
+
+        """
+        F = self.affine_patch(2).defining_polynomial()
+        x,y = F.parent().gens()
+        f,g = (F.coefficient(y), F(x,0))
+        R = self.hyperelliptic_polynomials()[0].parent()
+        x = R.gen()
+        self._hyperelliptic_polynomials = (-R(g(x, 0)), R(f(x, 0)))
+
+    def normalize_defining_polynomials(self):
+        r"""
+        Clear denominators from the equation defining this hyperelliptic curve.
+        Not guarenteed to be a minimal model, rather some integral model.
+        """
+        from .constructor import HyperellipticCurve
+        f,g = self.hyperelliptic_polynomials()
+        M = f.denominator().lcm(g.denominator())
+        return HyperellipticCurve(f * M ** 2, g * M)
 
     def rational_points(self, **kwds):
         r"""

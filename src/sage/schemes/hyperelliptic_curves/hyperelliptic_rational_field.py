@@ -99,7 +99,53 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             -409600
 
         """
-        return pari(self.hyperelliptic_polynomials()).hyperellminimaldisc().sage()
+        return pari(self.normalize_defining_polynomials().hyperelliptic_polynomials()
+                   ).hyperellminimaldisc().sage()
+
+    def rational_points(self, **kwds):
+        r"""
+        Find rational points on the hyperelliptic curve, all arguments are passed
+        on to :meth:`sage.schemes.generic.algebraic_scheme.rational_points`.
+
+        EXAMPLES:
+
+        For the LMFDB genus 2 curve `932.a.3728.1 <https://www.lmfdb.org/Genus2Curve/Q/932/a/3728/1>`::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, -1, 1, 0, 1, -2, 1]), R([1]));
+            sage: C.rational_points(bound=8)
+            [(-1 : -3 : 1),
+            (-1 : 2 : 1),
+            (0 : -1 : 1),
+            (0 : 0 : 1),
+            (0 : 1 : 0),
+            (1/2 : -5/8 : 1),
+            (1/2 : -3/8 : 1),
+            (1 : -1 : 1),
+            (1 : 0 : 1)]
+
+        Check that :trac:`29509` is fixed for the LMFDB genus 2 curve
+        `169.a.169.1 <https://www.lmfdb.org/Genus2Curve/Q/169/a/169/1>`::
+
+            sage: C = HyperellipticCurve(R([0, 0, 0, 0, 1, 1]), R([1, 1, 0, 1]));
+            sage: C.rational_points(bound=10)
+            [(-1 : 0 : 1),
+            (-1 : 1 : 1),
+            (0 : -1 : 1),
+            (0 : 0 : 1),
+            (0 : 1 : 0)]
+
+        An example over a number field::
+
+            sage: R.<x> = PolynomialRing(QuadraticField(2));
+            sage: C = HyperellipticCurve(R([1, 0, 0, 0, 0, 1]));
+            sage: C.rational_points(bound=2)
+            [(-1 : 0 : 1),
+             (0 : -1 : 1),
+             (0 : 1 : 0),
+             (0 : 1 : 1),
+             (1 : -a : 1),
+             (1 : a : 1)]
+        """
 
     def lseries(self, prec=53):
         """
