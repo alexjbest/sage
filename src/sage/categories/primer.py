@@ -1263,7 +1263,7 @@ this axiom is available in the subcategory of groups::
 
 The meaning of each axiom is described in the documentation of the
 corresponding method, which can be obtained as usual by
-instrospection::
+introspection::
 
     sage: C = Groups()
     sage: C.Finite?              # not tested
