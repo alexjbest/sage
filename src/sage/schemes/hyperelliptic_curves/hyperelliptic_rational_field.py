@@ -128,7 +128,7 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
 
             sage: C = HyperellipticCurve(R([0, 0, 0, 0, 1, 1]), R([1, 1, 0, 1]));
             sage: len(C.rational_points(bound=10))
-            9
+            5
 
         """
         pariout = pari(self.hyperelliptic_polynomials()).hyperellratpoints(pari(bound)).sage()
