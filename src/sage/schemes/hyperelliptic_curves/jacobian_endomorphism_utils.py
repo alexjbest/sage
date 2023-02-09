@@ -94,7 +94,6 @@ from sage.rings.all import QQ, ZZ, PolynomialRing, FiniteField, NumberField
 from sage.misc.lazy_import import lazy_import
 from sage.rings.fast_arith import prime_range
 from sage.arith.all import gcd
-lazy_import('sage.interfaces.genus2reduction', ['genus2reduction', 'Genus2reduction'])
 
 
 def satisfies_coefficient_condition(g, p):
