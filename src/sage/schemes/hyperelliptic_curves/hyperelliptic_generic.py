@@ -39,6 +39,7 @@ from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.functions.all import log
+from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
 from sage.structure.category_object import normalize_names
 from sage.misc.cachefunc import cached_method
 
@@ -351,11 +352,11 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             sage: Hp3 = H.change_ring(QuadraticField(-3, 'b')).odd_degree_model(); Hp3
             Hyperelliptic Curve over Number Field in b with defining polynomial x^2 + 3 with b = 1.732050807568878?*I defined by y^2 = -4*b*x^5 - 14*x^4 - 20*b*x^3 - 35*x^2 + 6*b*x + 1
 
-            Of course, Hp2 and Hp3 are isomorphic over the composite
-            extension.  One consequence of this is that odd degree models
-            reduced over "different" fields should have the same number of
-            points on their reductions.  43 and 67 split completely in the
-            compositum, so when we reduce we find:
+        Of course, Hp2 and Hp3 are isomorphic over the composite
+        extension.  One consequence of this is that odd degree models
+        reduced over "different" fields should have the same number of
+        points on their reductions.  43 and 67 split completely in the
+        compositum, so when we reduce we find::
 
             sage: P2 = K2.factor(43)[0][0]
             sage: P3 = K3.factor(43)[0][0]
@@ -422,6 +423,55 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             return bool(self.odd_degree_model())
         except ValueError:
             return False
+
+    def simplified_model(self):
+        r"""
+        Return a model of self of the form ``y^2 = f(x)``.
+
+        EXAMPLES::
+
+            sage: K3 = QuadraticField(-3, 'b')
+            sage: Hp3 = H.change_ring(QuadraticField(-3, 'b')).odd_degree_model(); Hp3
+            Hyperelliptic Curve over Number Field in b with defining polynomial x^2 + 3 with b = 1.732050807568878?*I defined by y^2 = -4*b*x^5 - 14*x^4 - 20*b*x^3 - 35*x^2 + 6*b*x + 1
+
+        Of course, Hp2 and Hp3 are isomorphic over the composite
+        extension.  One consequence of this is that odd degree models
+        reduced over "different" fields should have the same number of
+        points on their reductions.  43 and 67 split completely in the
+        compositum, so when we reduce we find::
+
+            sage: P2 = K2.factor(43)[0][0]
+            sage: P3 = K3.factor(43)[0][0]
+            sage: Hp2.change_ring(K2.residue_field(P2)).frobenius_polynomial()
+            x^4 - 16*x^3 + 134*x^2 - 688*x + 1849
+            sage: Hp3.change_ring(K3.residue_field(P3)).frobenius_polynomial()
+            x^4 - 16*x^3 + 134*x^2 - 688*x + 1849
+            sage: H.change_ring(GF(43)).odd_degree_model().frobenius_polynomial()
+            x^4 - 16*x^3 + 134*x^2 - 688*x + 1849
+
+            sage: P2 = K2.factor(67)[0][0]
+            sage: P3 = K3.factor(67)[0][0]
+            sage: Hp2.change_ring(K2.residue_field(P2)).frobenius_polynomial()
+            x^4 - 8*x^3 + 150*x^2 - 536*x + 4489
+            sage: Hp3.change_ring(K3.residue_field(P3)).frobenius_polynomial()
+            x^4 - 8*x^3 + 150*x^2 - 536*x + 4489
+            sage: H.change_ring(GF(67)).odd_degree_model().frobenius_polynomial()
+            x^4 - 8*x^3 + 150*x^2 - 536*x + 4489
+
+        TESTS::
+
+            sage: HyperellipticCurve(x^5 + 1, 1).odd_degree_model()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: odd_degree_model only implemented for curves in Weierstrass form
+
+            sage: HyperellipticCurve(x^5 + 1, names="U, V").odd_degree_model()
+            Hyperelliptic Curve over Rational Field defined by V^2 = U^5 + 1
+        """
+        f, h = self._hyperelliptic_polynomials
+
+        from .constructor import HyperellipticCurve
+        return HyperellipticCurve(f ** 2 + 4 * h, 0, names=self._names, PP=self._PP)
 
     def _magma_init_(self, magma):
         """
@@ -663,39 +713,22 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         else:
             return self.local_coordinates_at_nonweierstrass(P, prec, name)
 
-    # def _reset_hyperelliptic_polynomials(self):
-    #     r"""
-    #     Resets the hyperelliptic polynomials of the hyperelliptic curve to those implied by the underlying
-    #     defining polynomial.
-    #     Useful for fixing up curves after modification by a more general curve theoretic method.
-
-    #     EXAMPLES::
-
-    #         sage: R = PolynomialRing(QQ, "x")
-    #         sage: C = HyperellipticCurve(R([1/256, 0, 0, 0, 1, 1]), R([1]))
-    #         sage: C
-    #         Hyperelliptic Curve over Rational Field defined by y^2 + y = x^5 + x^4 + 1/256
-    #         sage: _reset_hyperelliptic_polynomials(C)
-    #         sage: C
-    #         Hyperelliptic Curve over Rational Field defined by y^2 + y = x^5 + x^4 + 1/256
-
-    #     """
-    #     F = self.affine_patch(2).defining_polynomial()
-    #     x,y = F.parent().gens()
-    #     f,g = (F.coefficient(y), F(x,0))
-    #     R = self.hyperelliptic_polynomials()[0].parent()
-    #     x = R.gen()
-    #     self._hyperelliptic_polynomials = (-R(g(x, 0)), R(f(x, 0)))
-
     def normalize_defining_polynomials(self):
         r"""
         Clear denominators from the equation defining this hyperelliptic curve.
         Not guaranteed to be a minimal model, rather some integral model.
+
+        EXAMPLES::
+
+            sage: R = PolynomialRing(QQ, "x")
+            sage: C = HyperellipticCurve(R([1/256, 0, 0, 0, 1, 1]), R([1]))
+            sage: C.normalize_defining_polynomials()
+            Hyperelliptic Curve over Rational Field defined by y^2 + 256*y = 65536*x^5 + 65536*x^4 + 256
         """
         from .constructor import HyperellipticCurve
         f,g = self.hyperelliptic_polynomials()
         M = f.denominator().lcm(g.denominator())
-        return HyperellipticCurve(f * M ** 2, g * M)
+        return HyperellipticCurve(f * M ** 2, g * M, names=self._names, PP=self._PP)
 
     def rational_points(self, **kwds):
         r"""

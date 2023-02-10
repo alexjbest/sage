@@ -101,6 +101,45 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             sage: X.minimal_discriminant()
             -409600
 
+        Qing Lui's example from https://www.math.u-bordeaux.fr/~qliu/articles/algo_Weierstrass_mini-arxiv.pdf::
+
+            sage: R.<x> = PolynomialRing(QQ, "x")
+            sage: C = HyperellipticCurve(5^6*17^3*x^5, 2^4*11*13)
+            sage: C.minimal_discriminant().factor()
+            2^12 * 5^11 * 11^8 * 13^8 * 17^8
+
+        A genus 3 example from https://londmathsoc.onlinelibrary.wiley.com/doi/full/10.1112/blms.12604
+        cross-referencing with the optional package
+        https://alexjbest.github.io/cluster-pictures/cluster_pictures.html#sage_cluster_pictures.cluster_pictures.BYTree.minimal_discriminant::
+
+            sage: C = HyperellipticCurve((x^3 - 7^15)*(x^2-7^6)*(x^3-7^3))
+            sage: C.minimal_discriminant()
+            590561633821394821581347105694543392818159361592405117014533630178101753364407699502733716603631767090783846400000000000000000000
+            sage: C.minimal_discriminant().factor()
+            2^64 * 3^26 * 5^20 * 7^24 * 13^10 * 19^10 * 43^10 * 181^10
+            sage: (7,24) in C.minimal_discriminant().factor()
+            True
+            sage: (7,22) in HyperellipticCurve(7*(x^2+1)*(x^2+36)*(x^2+64)).minimal_discriminant().factor()
+
+        An infinite family of examples::
+
+            sage: p = 11
+            sage: (p, 27) in HyperellipticCurve(p*(x^2-p^5)*(x^3-p^3)*((x-1)^3-p^9)).minimal_discriminant().factor()
+            True
+            sage: p = 13
+            sage: (p, 27) in HyperellipticCurve(p*(x^2-p^5)*(x^3-p^3)*((x-1)^3-p^9)).minimal_discriminant().factor()
+            True
+
+        Curiously this holds even for even a couple of primes smaller than what is proved in the User's guide::
+
+            sage: p = 5
+            sage: (p, 27) in HyperellipticCurve(p*(x^2-p^5)*(x^3-p^3)*((x-1)^3-p^9)).minimal_discriminant().factor()
+            True
+            sage: p = 7
+            sage: (p, 27) in HyperellipticCurve(p*(x^2-p^5)*(x^3-p^3)*((x-1)^3-p^9)).minimal_discriminant().factor()
+            True
+
+
         """
         return pari(self.normalize_defining_polynomials().hyperelliptic_polynomials()
                    ).hyperellminimaldisc().sage()
@@ -145,6 +184,71 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             raise TypeError("Unable to enumerate points over Q, please specify a height bound.")
         pariout = pari(self.hyperelliptic_polynomials()).hyperellratpoints(pari(bound)).sage()
         return [self(P) for P in pariout] + [self(0,1,0)]
+
+    def is_locally_solvable(self, p) -> bool:
+        r"""
+        Whether the projective curve given by the affine model is solvable at prime `p`
+
+        EXAMPLES::
+
+            sage: R = PolynomialRing(QQ, "x")
+            sage: C = HyperellipticCurve(R([1/256, 0, 0, 0, 0, 1]), R([]))
+            sage: C.is_locally_solvable(5)
+            True
+            sage: C.is_locally_solvable(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: curve must be of genus 2
+        
+        Lind and Reichardt's example of a curve everywhere locally solvable but with no rational points::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: C = HyperellipticCurve(2*x^4 - 34)
+            sage: C.is_locally_solvable(17)
+            True
+            sage: C.is_locally_solvable(2)
+            True
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([-56, 0, -75, 0, 15, 0, -1]), R([0, 1, 0, 1]));
+            sage: C.is_locally_solvable(2)
+            False
+            sage: C.is_locally_solvable(3)
+            True
+            sage: C.is_locally_solvable(7)
+            True
+
+        """
+        return pari(self.simplified_model().normalize_defining_polynomials().hyperelliptic_polynomials()[0]
+                      ).hyperell_locally_solvable(ZZ(p).pari()).sage()
+
+    def bad_primes(self):
+        return
+
+    def is_everywhere_locally_solvable(self, return_prime):
+        r"""
+        Whether the projective curve given by the affine model is solvable at prime `p`
+
+        Warning: the Sage convention is that `rational_points` of a hyperelliptic curve
+        are those of the singular model, thus it is possible that a hyperelliptic 
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: C = HyperellipticCurve(R([-56, 0, -75, 0, 15, 0, -1]), R([0, 1, 0, 1]))
+            sage: C.is_everywhere_locally_solvable()
+            False
+
+        Lind and Reichardt's example of a curve everywhere locally solvable but with no rational points::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: C = HyperellipticCurve(2*x^4 - 34)
+            sage: C.is_everywhere_locally_solvable()
+            True
+
+        """
+
 
     def reduction_type(self):
         r"""
@@ -235,6 +339,12 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             ValueError: even part of the conductor not computed for this curve, use odd_part_only=True to get the odd part
             sage: C.conductor(odd_part_only=True)
             15
+            sage: C = HyperellipticCurve(R([0, 0, 1, 0, 1]), R([1, 0, 0, 1]))
+            sage: C.conductor()
+            294
+            sage: X = HyperellipticCurve(R([1, 0, 4, 2, 4, 0, 1]))
+            sage: X.conductor()
+            294
 
         """
         if not isinstance(self, HyperellipticCurve_g2):

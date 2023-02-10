@@ -297,7 +297,7 @@ def cantor_composition(D1,D2,f,h,genus):
         sage: 7*8297*Q # indirect doctest
         (1)
 
-        A test over a prime field:
+    A test over a prime field::
 
         sage: F = GF(next_prime(10^30))
         sage: x = F['x'].gen()
