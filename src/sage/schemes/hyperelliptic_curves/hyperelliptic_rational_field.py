@@ -177,6 +177,7 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             Traceback (most recent call last):
             ...
             ValueError: curve must be of genus 2
+        
         """
         if not isinstance(self, HyperellipticCurve_g2):
             raise ValueError('curve must be of genus 2')
@@ -223,6 +224,17 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             sage: C = HyperellipticCurve(R([0, 1, 0, 0, 0, 1]), R([]));
             sage: C.conductor(odd_part_only=True)
             1
+
+        ::
+
+            sage: R.<x> = PolynomialRing(Rationals())
+            sage: C = HyperellipticCurve(R([-30, 0, -37, 0, -15, 0,-2]))
+            sage: C.conductor()
+            Traceback (most recent call last):
+            ...
+            ValueError: even part of the conductor not computed for this curve, use odd_part_only=True to get the odd part
+            sage: C.conductor(odd_part_only=True)
+            15
 
         """
         if not isinstance(self, HyperellipticCurve_g2):
