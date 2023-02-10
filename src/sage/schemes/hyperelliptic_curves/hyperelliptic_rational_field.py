@@ -14,8 +14,11 @@ from sage.rings.padics.all import pAdicField
 from sage.schemes.curves.projective_curve import ProjectivePlaneCurve_field
 from sage.libs.pari.all import pari
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_import import lazy_import
 
 from . import hyperelliptic_generic
+from .hyperelliptic_g2 import HyperellipticCurve_g2
+lazy_import('sage.interfaces.genus2reduction', ['genus2reduction', 'Genus2reduction'])
 
 
 class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve_generic,
@@ -142,6 +145,93 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             raise TypeError("Unable to enumerate points over Q, please specify a height bound.")
         pariout = pari(self.hyperelliptic_polynomials()).hyperellratpoints(pari(bound)).sage()
         return [self(P) for P in pariout] + [self(0,1,0)]
+
+    def reduction_type(self):
+        r"""
+        Compute the reduction type of a genus 2 hyperelliptic curve over `\QQ` using the
+        ``genus2reduction`` program.
+
+        EXAMPLES:
+
+        X_1(13)::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: C = HyperellipticCurve(R([0, 0, 0, 0, 1, 1]), R([1, 1, 0, 1]));
+            sage: C.reduction_type()
+            Reduction data about this proper smooth genus 2 curve:
+                y^2 + (x^3 + x + 1)*y = x^5 + x^4
+            A Minimal Equation:
+                y^2 + (x^3 + x + 1)y = x^5 + x^4
+            Minimal Discriminant: -169
+            Conductor: 169
+            Local Data:
+                    p=13
+                    (potential) stable reduction:  (V), j1+j2=0, j1*j2=0
+                    reduction at p: [I{0}-II-0] page 159, (1), f=2
+
+        Can't do higher genus yet::
+
+            sage: x = polygen(QQ, 'x')
+            sage: C = HyperellipticCurve(x^2+x, x^7+x^2+1)
+            sage: C.reduction_type()
+            Traceback (most recent call last):
+            ...
+            ValueError: curve must be of genus 2
+        """
+        if not isinstance(self, HyperellipticCurve_g2):
+            raise ValueError('curve must be of genus 2')
+        P,Q = self.hyperelliptic_polynomials()
+        return genus2reduction(Q, P)
+
+    def conductor(self, odd_part_only=False):
+        r"""
+        Compute the conductor of a genus 2 hyperelliptic curve over `\QQ`.
+
+        EXAMPLES:
+
+        X_1(13)::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: C = HyperellipticCurve(R([0, 0, 0, 0, 1, 1]), R([1, 1, 0, 1]));
+            sage: C.conductor()
+            169
+            sage: X = HyperellipticCurve(R([1, 2, 1, 2, 6, 4, 1]))
+            sage: X.conductor()
+            169
+
+        Can't do higher genus yet::
+
+            sage: x = polygen(QQ, 'x')
+            sage: C = HyperellipticCurve(x^2+x, x^7+x^2+1)
+            sage: C.conductor()
+            Traceback (most recent call last):
+            ...
+            ValueError: curve must be of genus 2
+
+        Sometimes this fails::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: C = HyperellipticCurve(R([0, 1, 0, 0, 0, 1]), R([]));
+            sage: C.conductor()
+            Traceback (most recent call last):
+            ...
+            ValueError: even part of the conductor not computed for this curve, use odd_part_only=True to get the odd part
+
+        We can use ``odd_part_only`` in such cases to get the odd part of the conductor at least::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: C = HyperellipticCurve(R([0, 1, 0, 0, 0, 1]), R([]));
+            sage: C.conductor(odd_part_only=True)
+            1
+
+        """
+        if not isinstance(self, HyperellipticCurve_g2):
+            raise ValueError('curve must be of genus 2')
+        rr = self.reduction_type()
+        if odd_part_only or (rr.pari_result[1][0][0].sage() != 2 or
+                             rr.pari_result[1][1][0].sage() != -1):
+            return rr.conductor
+        raise ValueError("even part of the conductor not computed for this curve, use odd_part_only=True to get the odd part")
 
     def lseries(self, prec=53):
         """
