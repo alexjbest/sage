@@ -13,6 +13,11 @@ tasks:
       && conda activate $(pwd)/venv
       && ./bootstrap
       && ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python --prefix=$CONDA_PREFIX
+                    $(for pkg in $(./sage -package list :standard:     \
+                               --has-file spkg-configure.m4      \
+                               --has-file distros/conda.txt); do \
+                    echo --with-system-$pkg=force;               \
+                done)
       && pip install --no-build-isolation -v -v -e ./pkgs/sage-conf ./pkgs/sage-setup
       && pip install --no-build-isolation -v -v -e ./src
     # Activate conda environment, set up Trac remote
