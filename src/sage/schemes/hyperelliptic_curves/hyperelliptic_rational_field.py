@@ -151,7 +151,7 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
 
         EXAMPLES:
 
-        For the LMFDB genus 2 curve `932.a.3728.1 <https://www.lmfdb.org/Genus2Curve/Q/932/a/3728/1>`::
+        For the LMFDB genus 2 curve ``932.a.3728.1`` <https://www.lmfdb.org/Genus2Curve/Q/932/a/3728/1>::
 
             sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, -1, 1, 0, 1, -2, 1]), R([1]));
             sage: C.rational_points(bound=8)
@@ -166,7 +166,7 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
              (0 : 1 : 0)]
 
         Check that :trac:`29509` is fixed for the LMFDB genus 2 curve
-        `169.a.169.1 <https://www.lmfdb.org/Genus2Curve/Q/169/a/169/1>`::
+        ``169.a.169.1`` <https://www.lmfdb.org/Genus2Curve/Q/169/a/169/1>::
 
             sage: C = HyperellipticCurve(R([0, 0, 0, 0, 1, 1]), R([1, 1, 0, 1]));
             sage: len(C.rational_points(bound=10))

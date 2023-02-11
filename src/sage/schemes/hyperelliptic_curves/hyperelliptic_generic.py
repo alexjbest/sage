@@ -39,7 +39,6 @@ from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.functions.all import log
-from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
 from sage.structure.category_object import normalize_names
 from sage.misc.cachefunc import cached_method
 
@@ -430,48 +429,17 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
         EXAMPLES::
 
-            sage: K3 = QuadraticField(-3, 'b')
-            sage: Hp3 = H.change_ring(QuadraticField(-3, 'b')).odd_degree_model(); Hp3
-            Hyperelliptic Curve over Number Field in b with defining polynomial x^2 + 3 with b = 1.732050807568878?*I defined by y^2 = -4*b*x^5 - 14*x^4 - 20*b*x^3 - 35*x^2 + 6*b*x + 1
+            sage: x = QQ['x'].0
+            sage: HyperellipticCurve(x^5 + 1, 1).simplified_model()
+            Hyperelliptic Curve over Rational Field defined by y^2 = x^5 + 5/4
 
-        Of course, Hp2 and Hp3 are isomorphic over the composite
-        extension.  One consequence of this is that odd degree models
-        reduced over "different" fields should have the same number of
-        points on their reductions.  43 and 67 split completely in the
-        compositum, so when we reduce we find::
-
-            sage: P2 = K2.factor(43)[0][0]
-            sage: P3 = K3.factor(43)[0][0]
-            sage: Hp2.change_ring(K2.residue_field(P2)).frobenius_polynomial()
-            x^4 - 16*x^3 + 134*x^2 - 688*x + 1849
-            sage: Hp3.change_ring(K3.residue_field(P3)).frobenius_polynomial()
-            x^4 - 16*x^3 + 134*x^2 - 688*x + 1849
-            sage: H.change_ring(GF(43)).odd_degree_model().frobenius_polynomial()
-            x^4 - 16*x^3 + 134*x^2 - 688*x + 1849
-
-            sage: P2 = K2.factor(67)[0][0]
-            sage: P3 = K3.factor(67)[0][0]
-            sage: Hp2.change_ring(K2.residue_field(P2)).frobenius_polynomial()
-            x^4 - 8*x^3 + 150*x^2 - 536*x + 4489
-            sage: Hp3.change_ring(K3.residue_field(P3)).frobenius_polynomial()
-            x^4 - 8*x^3 + 150*x^2 - 536*x + 4489
-            sage: H.change_ring(GF(67)).odd_degree_model().frobenius_polynomial()
-            x^4 - 8*x^3 + 150*x^2 - 536*x + 4489
-
-        TESTS::
-
-            sage: HyperellipticCurve(x^5 + 1, 1).odd_degree_model()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: odd_degree_model only implemented for curves in Weierstrass form
-
-            sage: HyperellipticCurve(x^5 + 1, names="U, V").odd_degree_model()
+            sage: HyperellipticCurve(x^5 + 1, names="U, V").simplified_model()
             Hyperelliptic Curve over Rational Field defined by V^2 = U^5 + 1
         """
-        f, h = self._hyperelliptic_polynomials
+        f, h = self.hyperelliptic_polynomials()
 
         from .constructor import HyperellipticCurve
-        return HyperellipticCurve(f ** 2 + 4 * h, 0, names=self._names, PP=self._PP)
+        return HyperellipticCurve(f + h ** 2 / 4, 0, names=self._names, PP=self._PP)
 
     def _magma_init_(self, magma):
         """
@@ -739,8 +707,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
         An example over a number field::
 
-            sage: R.<x> = PolynomialRing(QuadraticField(2));
-            sage: C = HyperellipticCurve(R([1, 0, 0, 0, 0, 1]));
+            sage: R.<x> = PolynomialRing(QuadraticField(2))
+            sage: C = HyperellipticCurve(R([1, 0, 0, 0, 0, 1]))
             sage: C.rational_points(bound=2)
             [(-1 : 0 : 1),
              (0 : -1 : 1),
