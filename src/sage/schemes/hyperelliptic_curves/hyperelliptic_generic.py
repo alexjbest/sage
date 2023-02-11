@@ -709,8 +709,9 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
     def weierstrass_points(self):
         """
         Return the Weierstrass points of self defined over self.base_ring(),
-        that is, the point at infinity and those points in the support
-        of the divisor of `y`
+        that is, those points fixed by the hyperelliptic involution.
+        In the case that there is one point at infinity we the singular point
+        representing it.
 
         EXAMPLES::
 
@@ -719,15 +720,79 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             sage: C = HyperellipticCurve(x^5 + 33/16*x^4 + 3/4*x^3 + 3/8*x^2 - 1/4*x + 1/16)
             sage: C.weierstrass_points()
             [(0 : 1 + O(11^5) : 0), (7 + 10*11 + 4*11^3 + O(11^5) : 0 : 1 + O(11^5))]
+
+        ::
+
+            sage: x = polygen(QQ)
+            sage: C = HyperellipticCurve((x+2)*(x+1)*x*(x-1)*(x-2))
+            sage: C.weierstrass_points()
+            [(0 : 1 : 0),
+            (2 : 0 : 1),
+            (1 : 0 : 1),
+            (0 : 0 : 1),
+            (-1 : 0 : 1),
+            (-2 : 0 : 1)]
+            sage: C = HyperellipticCurve((x+2)*(x+1)*x*(x-1)*(x-2)*(x-3))
+            sage: C.weierstrass_points()
+            [(3 : 0 : 1),
+            (2 : 0 : 1),
+            (1 : 0 : 1),
+            (0 : 0 : 1),
+            (-1 : 0 : 1),
+            (-2 : 0 : 1)]
+            sage: C = HyperellipticCurve((x+2)*(x+1)*x*(x-1)*(x-2) - 1,2)
+            sage: C.weierstrass_points()
+            [(0 : 1 : 0),
+            (2 : -1 : 1),
+            (1 : -1 : 1),
+            (0 : -1 : 1),
+            (-1 : -1 : 1),
+            (-2 : -1 : 1)]
+            sage: C = HyperellipticCurve((x+2)*(x+1)*x*(x-1)*(x-2)*(x-3) - 1,2)
+            sage: C.weierstrass_points()
+            [(3 : -1 : 1),
+            (2 : -1 : 1),
+            (1 : -1 : 1),
+            (0 : -1 : 1),
+            (-1 : -1 : 1),
+            (-2 : -1 : 1)]
+            sage: C = HyperellipticCurve((x+2)*(x+1)*x*(x-1)*(x-2)*(x-3) - x^2,2*x)
+            sage: C.weierstrass_points()
+            sage:C := HyperellipticCurve(R([-5, 0, 7, 0, -3]), R([0, 1, 0, 1]));
+            sage: C.weierstrass_points()
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, 0, 0, 1, 1]), R([1, 1, 0, 1]));
+            sage: C.weierstrass_points()
+            []
+        
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 1, 1]), R([1, 0, 0, 1]));
+            sage: C.weierstrass_points()
+            [(0 : 0 : 1)]
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([2, 3, 1, 1, 0, -1]), R([1, 0, 0, 1]));
+            sage: C.weierstrass_points()
+            [(-1 : 0 : 1), (3 : -14 : 1)]
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, 0, 0, 0, 0, -1]), R([1, 1]));
+            sage: C.weierstrass_points()
+            [(0 : 1 : 0), (1 : -1 : 1)]
+
         """
         f, h = self.hyperelliptic_polynomials()
-        if h != 0:
-            raise NotImplementedError()
-        return [self((0,1,0))] + [self((x, 0, 1)) for x in f.roots(multiplicities=False)]
+        # TODO throw an error in char 2?
+        F = 4 * f + h ** 2
+        return [self((0,1,0))] + [self((x, -h(x) / 2, 1)) for x in F.roots(multiplicities=False)]
 
     def is_weierstrass(self, P):
-
-        """
+        r"""
         Checks if `P` is a Weierstrass point (i.e., fixed by the hyperelliptic involution)
 
         EXAMPLES::
@@ -754,6 +819,10 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
         - Jennifer Balakrishnan (2010-02)
         """
+        # TODO hyperelliptic morphisms
+        # hyperlliptic involution as a hyperlliptic morphism
+        # check this in terms of that
+        # be careful in the infinite case
         f, h = self.hyperelliptic_polynomials()
         if h != 0:
             raise NotImplementedError()
