@@ -750,6 +750,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
         - Jennifer Balakrishnan (2010-02)
         """
+        f, h = self.hyperelliptic_polynomials()
         if h != 0:
             raise NotImplementedError()
         return (P[1] == 0 or P[2] == 0)
