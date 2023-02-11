@@ -437,6 +437,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             Hyperelliptic Curve over Rational Field defined by V^2 = U^5 + 1
         """
         f, h = self.hyperelliptic_polynomials()
+        if h == 0:
+            return self
 
         from .constructor import HyperellipticCurve
         return HyperellipticCurve(f + h ** 2 / 4, 0, names=self._names, PP=self._PP)
@@ -696,12 +698,68 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         from .constructor import HyperellipticCurve
         f,g = self.hyperelliptic_polynomials()
         M = f.denominator().lcm(g.denominator())
+        if M == 1:
+            return self
         return HyperellipticCurve(f * M ** 2, g * M, names=self._names, PP=self._PP)
+
+    def weierstrass_points(self):
+        """
+        Return the Weierstrass points of self defined over self.base_ring(),
+        that is, the point at infinity and those points in the support
+        of the divisor of `y`
+
+        EXAMPLES::
+
+            sage: K = pAdicField(11, 5)
+            sage: x = polygen(K)
+            sage: C = HyperellipticCurve(x^5 + 33/16*x^4 + 3/4*x^3 + 3/8*x^2 - 1/4*x + 1/16)
+            sage: C.weierstrass_points()
+            [(0 : 1 + O(11^5) : 0), (7 + 10*11 + 4*11^3 + O(11^5) : 0 : 1 + O(11^5))]
+        """
+        f, h = self.hyperelliptic_polynomials()
+        if h != 0:
+            raise NotImplementedError()
+        return [self((0,1,0))] + [self((x, 0, 1)) for x in f.roots(multiplicities=False)]
+
+    def is_weierstrass(self, P):
+
+        """
+        Checks if `P` is a Weierstrass point (i.e., fixed by the hyperelliptic involution)
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: H = HyperellipticCurve(x^3-10*x+9)
+            sage: K = Qp(5,8)
+            sage: HK = H.change_ring(K)
+            sage: P = HK(0,3)
+            sage: HK.is_weierstrass(P)
+            False
+            sage: Q = HK(0,1,0)
+            sage: HK.is_weierstrass(Q)
+            True
+            sage: S = HK(1,0)
+            sage: HK.is_weierstrass(S)
+            True
+            sage: T = HK.lift_x(1+3*5^2); T
+            (1 + 3*5^2 + O(5^8) : 2*5 + 4*5^3 + 3*5^4 + 5^5 + 3*5^6 + O(5^7) : 1 + O(5^8))
+            sage: HK.is_weierstrass(T)
+            False
+
+        AUTHOR:
+
+        - Jennifer Balakrishnan (2010-02)
+        """
+        if h != 0:
+            raise NotImplementedError()
+        return (P[1] == 0 or P[2] == 0)
 
     def rational_points(self, **kwds):
         r"""
         Find rational points on the hyperelliptic curve, all arguments are passed
         on to :meth:`sage.schemes.generic.algebraic_scheme.rational_points`.
+
+        For hyperelliptic curves over the rationals the more specialized method should be used.
 
         EXAMPLES:
 
@@ -716,6 +774,19 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
              (0 : 1 : 1),
              (1 : -a : 1),
              (1 : a : 1)]
+        
+        we can call with the field as a parameter also::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: C = HyperellipticCurve(R([1, 0, 0, 0, 0, 1]))
+            sage: C.rational_points(bound=2, F=QuadraticField(2))
+            [(-1 : 0 : 1),
+             (0 : -1 : 1),
+             (0 : 1 : 0),
+             (0 : 1 : 1),
+             (1 : -a : 1),
+             (1 : a : 1)]
+
         """
         from sage.schemes.curves.constructor import Curve
         # we change C to be a plane curve to allow the generic rational

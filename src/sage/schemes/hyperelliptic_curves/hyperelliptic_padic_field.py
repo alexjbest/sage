@@ -139,35 +139,14 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             x = x.polynomial()(y).add_bigoh(x.prec())
             return (x, y, 1)
 
-    def weierstrass_points(self):
-        """
-        Return the Weierstrass points of self defined over self.base_ring(),
-        that is, the point at infinity and those points in the support
-        of the divisor of `y`
-
-        EXAMPLES::
-
-            sage: K = pAdicField(11, 5)
-            sage: x = polygen(K)
-            sage: C = HyperellipticCurve(x^5 + 33/16*x^4 + 3/4*x^3 + 3/8*x^2 - 1/4*x + 1/16)
-            sage: C.weierstrass_points()
-            [(0 : 1 + O(11^5) : 0), (7 + 10*11 + 4*11^3 + O(11^5) : 0 : 1 + O(11^5))]
-        """
-        f, h = self.hyperelliptic_polynomials()
-        if h != 0:
-            raise NotImplementedError()
-        return [self((0,1,0))] + [self((x, 0, 1)) for x in f.roots(multiplicities=False)]
-
     def is_in_weierstrass_disc(self, P):
         """
         Checks if `P` is in a Weierstrass disc
 
         EXAMPLES::
 
-            sage: R.<x> = QQ['x']
-            sage: H = HyperellipticCurve(x^3-10*x+9)
-            sage: K = Qp(5,8)
-            sage: HK = H.change_ring(K)
+            sage: R.<x> = Qp(5,8)['x']
+            sage: HK = HyperellipticCurve(x^3-10*x+9)
             sage: P = HK(0,3)
             sage: HK.is_in_weierstrass_disc(P)
             False
@@ -182,41 +161,32 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: HK.is_in_weierstrass_disc(T)
             True
 
-        AUTHOR:
+        Non-simplified models::
 
-        - Jennifer Balakrishnan (2010-02)
-        """
-        return not (P[1].valuation() == 0 and P != self(0, 1, 0))
-
-    def is_weierstrass(self, P):
-        """
-        Checks if `P` is a Weierstrass point (i.e., fixed by the hyperelliptic involution)
-
-        EXAMPLES::
-
-            sage: R.<x> = QQ['x']
-            sage: H = HyperellipticCurve(x^3-10*x+9)
-            sage: K = Qp(5,8)
-            sage: HK = H.change_ring(K)
-            sage: P = HK(0,3)
-            sage: HK.is_weierstrass(P)
+            sage: R.<x> = Qp(5,8)['x']
+            sage: HK = HyperellipticCurve(x^3-10*x+9, 2)
+            sage: P = HK(0,4)
+            sage: HK.is_in_weierstrass_disc(P)
             False
             sage: Q = HK(0,1,0)
-            sage: HK.is_weierstrass(Q)
+            sage: HK.is_in_weierstrass_disc(Q)
             True
-            sage: S = HK(1,0)
-            sage: HK.is_weierstrass(S)
+            sage: S = HK(1,1)
+            sage: HK.is_in_weierstrass_disc(S)
             True
-            sage: T = HK.lift_x(1+3*5^2); T
+            sage: T = HK.lift_x(1+3*5^2, 1); T
             (1 + 3*5^2 + O(5^8) : 2*5 + 4*5^3 + 3*5^4 + 5^5 + 3*5^6 + O(5^7) : 1 + O(5^8))
-            sage: HK.is_weierstrass(T)
-            False
+            sage: HK.is_in_weierstrass_disc(T)
+            True
 
         AUTHOR:
 
         - Jennifer Balakrishnan (2010-02)
         """
-        return (P[1] == 0 or P[2] == 0)
+        if h != 0: # TODO implement, its easy
+            raise NotImplementedError()
+        return not (P[1].valuation() == 0 and P != self(0, 1, 0))
+
 
     def find_char_zero_weier_point(self, Q):
         """

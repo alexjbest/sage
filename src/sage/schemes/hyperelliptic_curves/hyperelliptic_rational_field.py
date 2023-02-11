@@ -144,10 +144,12 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
         return pari(self.normalize_defining_polynomials().hyperelliptic_polynomials()
                    ).hyperellminimaldisc().sage()
 
-    def rational_points(self, bound=None):
+    def rational_points(self, **kwargs):
         r"""
-        Find rational points on the hyperelliptic curve, all arguments are passed
-        on to :meth:`sage.schemes.generic.algebraic_scheme.rational_points`.
+        Find rational points on the hyperelliptic curve over the rationals by searching.
+
+        Warning: this simply determines rational points up to some height bound, and
+        gives no guarantee that the set of points is complete.
 
         EXAMPLES:
 
@@ -172,16 +174,40 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             sage: len(C.rational_points(bound=10))
             5
         
-        ::
+        Check that it works for non-integral models::
 
             sage: R = PolynomialRing(QQ, "x")
             sage: C = HyperellipticCurve(R([1/256, 0, 0, 0, 0, 1]), R([]))
             sage: len(C.rational_points(bound=10))
             5
+        
+        A genus 3 curve, example 4.1 from https://arxiv.org/pdf/1805.03361.pdf::
+
+            sage: x = polygen(QQ)
+            sage: C = HyperellipticCurve(4*x^7+9*x^6-8*x^5-36*x^4-16*x^3+32*x^2+32*x+8)
+            sage: C.rational_points(bound=10)
+            [(-1 : 1 : 1),
+             (-1 : -1 : 1),
+             (1 : 5 : 1),
+             (1 : -5 : 1),
+             (0 : 1 : 0)]
+
+        Here we can check that we also call the generic method appropriately over an extension field::
+
+            sage: len(C.rational_points(bound=10, F=QuadraticField(2)))
+            9
+
+        We also check that the unsimplified model has the same number of points::
+
+            sage: x = polygen(QQ)
+            sage: C = HyperellipticCurve(x^7+2*x^6-2*x^5-9*x^4-4*x^3+8*x^2+8*x+2, x^3)
+            sage: len(C.rational_points(bound=10))
+            5
 
         """
-        if not bound:
-            raise TypeError("Unable to enumerate points over Q, please specify a height bound.")
+        if kwargs.keys() != ['bound']:
+            return super().rational_points(**kwargs)
+            # raise TypeError("Unable to enumerate points over Q, please specify a height bound.")
         pariout = pari(self.hyperelliptic_polynomials()).hyperellratpoints(pari(bound)).sage()
         return [self(P) for P in pariout] + [self(0,1,0)]
 
