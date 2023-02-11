@@ -435,6 +435,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
             sage: HyperellipticCurve(x^5 + 1, names="U, V").simplified_model()
             Hyperelliptic Curve over Rational Field defined by V^2 = U^5 + 1
+
+        TODO test is if already integral
         """
         f, h = self.hyperelliptic_polynomials()
         if h == 0:
@@ -694,6 +696,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             sage: C = HyperellipticCurve(R([1/256, 0, 0, 0, 1, 1]), R([1]))
             sage: C.normalize_defining_polynomials()
             Hyperelliptic Curve over Rational Field defined by y^2 + 256*y = 65536*x^5 + 65536*x^4 + 256
+
+        TODO test is if already integral
         """
         from .constructor import HyperellipticCurve
         f,g = self.hyperelliptic_polynomials()
