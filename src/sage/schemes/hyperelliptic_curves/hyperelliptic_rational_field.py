@@ -120,6 +120,7 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             sage: (7,24) in C.minimal_discriminant().factor()
             True
             sage: (7,22) in HyperellipticCurve(7*(x^2+1)*(x^2+36)*(x^2+64)).minimal_discriminant().factor()
+            True
 
         An infinite family of examples::
 
@@ -194,7 +195,7 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
 
         Here we can check that we also call the generic method appropriately over an extension field::
 
-            sage: len(C.rational_points(bound=10, F=QuadraticField(2)))
+            sage: len(C.rational_points(bound=5, F=QuadraticField(2)))
             9
 
         We also check that the unsimplified model has the same number of points::
@@ -204,11 +205,36 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             sage: len(C.rational_points(bound=10))
             5
 
+        The curve `X_0(67)^+`(see https://arxiv.org/pdf/1910.12755.pdf)::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: C = HyperellipticCurve(x^6+2*x^5+x^4-2*x^3+2*x^2-4*x+1)
+            sage: C.rational_points(bound=10)
+            [(-2 : -7 : 1),
+             (-2 : 7 : 1),
+             (-1 : -3 : 1),
+             (-1 : 3 : 1),
+             (0 : -1 : 1),
+             (0 : 1 : 0),
+             (0 : 1 : 1),
+             (1 : -1 : 1),
+             (1 : 1 : 1)]
+
+        An example from https://arxiv.org/pdf/1805.03361.pdf::
+
+            sage: x = polygen(QQ)
+            sage: C = HyperellipticCurve(x^7 - x^6 -5 * x^5 + 5 * x^3 - 3 * x^2 - x, x^4 + x^2 + x)
+            sage: C.rational_points(bound=100)
+            [(0 : 0 : 1),
+            (-49/18 : -339563/11664 : 1),
+            (-49/18 : -1600445/52488 : 1),
+            (0 : 1 : 0)]
+
         """
-        if kwargs.keys() != ['bound']:
+        if list(kwargs.keys()) != ['bound']:
             return super().rational_points(**kwargs)
             # raise TypeError("Unable to enumerate points over Q, please specify a height bound.")
-        pariout = pari(self.hyperelliptic_polynomials()).hyperellratpoints(pari(bound)).sage()
+        pariout = pari(self.hyperelliptic_polynomials()).hyperellratpoints(pari(kwargs['bound'])).sage()
         return [self(P) for P in pariout] + [self(0,1,0)]
 
     def is_locally_solvable(self, p) -> bool:
@@ -244,26 +270,40 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             True
             sage: C.is_locally_solvable(7)
             True
+            sage: C.is_locally_solvable(Infinity())
+            True
+
+         LMFDB curve 644.a.2576.1 has no real points::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([-5, 11, -20, 20, -20, 11, -5]), R([0, 1, 1]));
+            sage: C.is_locally_solvable(Infinity())
+            False
+
 
         """
         return pari(self.simplified_model().normalize_defining_polynomials().hyperelliptic_polynomials()[0]
-                      ).hyperell_locally_solvable(ZZ(p).pari()).sage()
+                      ).hyperell_locally_soluble(ZZ(p).pari()).sage()
 
     def bad_primes(self):
-        return
+        return []
 
-    def is_everywhere_locally_solvable(self, return_prime):
+    def is_everywhere_locally_solvable(self, return_primes=False):
         r"""
         Whether the projective curve given by the affine model is solvable at prime `p`
 
         Warning: the Sage convention is that `rational_points` of a hyperelliptic curve
-        are those of the singular model, thus it is possible that a hyperelliptic 
+        are those of the singular model, thus it is possible that a hyperelliptic curve
+        is not everywhere locally solvable according to this function, but that
+        the point ``(0 : 1 : 0)`` is returned by the function
+        :meth:`sage.schemes.hyperelliptic_curves.rational_points`
 
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: C = HyperellipticCurve(R([-56, 0, -75, 0, 15, 0, -1]), R([0, 1, 0, 1]))
             sage: C.is_everywhere_locally_solvable()
+            False
+            sage: C.is_everywhere_locally_solvable(return_primes=)
             False
 
         Lind and Reichardt's example of a curve everywhere locally solvable but with no rational points::
@@ -273,8 +313,21 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             sage: C.is_everywhere_locally_solvable()
             True
 
+         LMFDB curve 644.a.2576.1 has no real points::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([-5, 11, -20, 20, -20, 11, -5]), R([0, 1, 1]));
+            sage: C.is_everywhere_locally_solvable(Infinity())
+            False
+
         """
 
+        I = (p for p in self.bad_primes() + self.pot_insol_primes + [Infinity()] if not self.is_locally_solvable(p))
+        p = next(I)
+        if p:
+            if return_primes:
+                return [p] + list(I)
+            return False
+        return True
 
     def reduction_type(self):
         r"""
